@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mania de Açaí – Finalizar Pedido</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { color-scheme: dark; }
+        body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen bg-[#0b0316] text-white">
+    <!-- BG Decorativo -->
+    <div class="pointer-events-none fixed inset-0 -z-10">
+        <div class="absolute -top-40 -left-32 h-80 w-80 rounded-full bg-purple-700/30 blur-[120px]"></div>
+        <div class="absolute top-20 right-0 h-[30rem] w-[30rem] rounded-full bg-fuchsia-600/25 blur-[140px]"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="mx-auto w-full max-w-7xl px-6 py-6">
+        <div class="flex items-center justify-between gap-4">
+            <a href="/home" class="flex items-center gap-3">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 shadow-lg shadow-fuchsia-900/30">
+                    <span class="text-xl font-black">Aç</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight md:text-2xl">Mania de Açaí</h1>
+                    <p class="text-sm text-white/70">Finalizar Pedido</p>
+                </div>
+            </a>
+            <nav class="hidden items-center gap-2 sm:flex">
+                <a href="/home" class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">Catálogo</a>
+                <a href="/carrinho" class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">Carrinho</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-2xl px-6 pb-20">
+        <h2 class="text-2xl font-bold text-white/90 mb-6">Finalizar Pedido</h2>
+
+        <div id="cart-summary" class="mb-6 p-4 rounded-2xl border border-white/10 bg-white/5">
+            <h4 class="text-lg font-semibold text-white/90 mb-3">Seu Carrinho</h4>
+            <div id="cart-items-list" class="space-y-3">
+                <!-- Cart items will be loaded here -->
+                <p class="text-white/70">Carregando itens do carrinho...</p>
+            </div>
+            <h5 class="text-right mt-4 text-xl font-bold text-fuchsia-200">Total: R$ <span id="cart-total">0.00</span></h5>
+        </div>
+
+        <hr class="border-white/10 my-6">
+
+        <form id="checkout-form" class="mt-6 space-y-4">
+            <h4 class="text-lg font-semibold text-white/90">Informações de Entrega</h4>
+            <div class="space-y-2">
+                <label for="customer_name" class="block text-sm text-white/80">Nome Completo</label>
+                <input type="text" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" id="customer_name" name="customer_name" required>
+            </div>
+            <div class="space-y-2">
+                <label for="customer_table" class="block text-sm text-white/80">Número da Mesa (Opcional)</label>
+                <input type="text" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" id="customer_table" name="customer_table">
+            </div>
+            <div class="space-y-2">
+                <label for="delivery_address" class="block text-sm text-white/80">Endereço de Entrega</label>
+                <input type="text" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" id="delivery_address" name="delivery_address" placeholder="Rua, Número, Bairro" required>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="space-y-2 md:col-span-1">
+                    <label for="delivery_city" class="block text-sm text-white/80">Cidade</label>
+                    <input type="text" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" id="delivery_city" name="delivery_city" required>
+                </div>
+                <div class="space-y-2 md:col-span-1">
+                    <label for="delivery_state" class="block text-sm text-white/80">Estado</label>
+                    <input type="text" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" id="delivery_state" name="delivery_state" required>
+                </div>
+                <div class="space-y-2 md:col-span-1">
+                    <label for="delivery_zip_code" class="block text-sm text-white/80">CEP</label>
+                    <input type="text" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" id="delivery_zip_code" name="delivery_zip_code" required>
+                </div>
+            </div>
+
+            <div class="pix-section p-6 mt-6 rounded-2xl border border-purple-600/50 bg-purple-600/10 text-center">
+                <h5 class="text-xl font-semibold text-white/90">Pagamento via PIX</h5>
+                <p class="mt-2 text-white/70">Escaneie o QR Code abaixo para finalizar o pagamento.</p>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/QR_Code_Example.svg/1200px-QR_Code_Example.svg.png" alt="PIX QR Code Fictício" class="max-w-[150px] mx-auto mt-4">
+                <p class="mt-3 text-lg font-bold text-fuchsia-200">Chave PIX Fictícia: <strong>123.456.789-00</strong></p>
+                <small class="text-white/50">Este é um QR Code e chave PIX fictícios para demonstração.</small>
+            </div>
+
+            <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-5 py-3 text-lg font-semibold shadow-lg shadow-fuchsia-900/30 hover:opacity-95 mt-6">Confirmar Pedido e Pagar</button>
+            <div id="checkout-message" class="mt-3 text-center text-white/70"></div>
+        </form>
+    </main>
+
+    <script src="js/checkout.js"></script>
+</body>
+</html>

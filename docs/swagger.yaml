@@ -1,0 +1,315 @@
+openapi: 3.0.0
+info:
+  title: Açaí da Casa API
+  description: API para o cardápio digital Açaí da Casa.
+  version: 1.0.0
+servers:
+  - url: /api
+    description: Servidor de desenvolvimento
+
+paths:
+  /menu:
+    get:
+      summary: Retorna o cardápio completo
+      description: Retorna uma lista de todas as categorias e seus itens ativos.
+      responses:
+        '200':
+          description: Cardápio retornado com sucesso.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Açaí Tradicional"
+                    items:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Item'
+
+  /cart:
+    get:
+      summary: Retorna o carrinho da sessão atual
+      responses:
+        '200':
+          description: Itens do carrinho.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CartItem'
+    post:
+      summary: Adiciona um item ao carrinho
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                itemId:
+                  type: integer
+                  example: 1
+                quantity:
+                  type: integer
+                  example: 1
+      responses:
+        '201':
+          description: Item adicionado com sucesso.
+    delete:
+      summary: Esvazia o carrinho da sessão atual
+      responses:
+        '204':
+          description: Carrinho esvaziado com sucesso.
+
+  /cart/{itemId}:
+    put:
+      summary: Atualiza a quantidade de um item no carrinho
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  example: 2
+      responses:
+        '200':
+          description: Quantidade atualizada com sucesso.
+    delete:
+      summary: Remove um item do carrinho
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Item removido com sucesso.
+
+  /orders:
+    post:
+      summary: Cria um novo pedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderPayload'
+      responses:
+        '201':
+          description: Pedido criado com sucesso.
+
+  /admin/login:
+    post:
+      summary: Autentica um administrador
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login bem-sucedido, retorna token JWT.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
+  /admin/upload:
+    post:
+      summary: Upload de imagem
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Upload bem-sucedido, retorna a URL da imagem.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imageUrl:
+                    type: string
+                    example: "/uploads/image-1678886400000.jpg"
+
+  /admin/orders:
+    get:
+      summary: Retorna a lista de pedidos (RF007)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Recebido, Em preparo, Pronto, Entregue]
+      responses:
+        '200':
+          description: Lista de pedidos.
+
+  /admin/orders/{id}/status:
+    patch:
+      summary: Atualiza o status de um pedido (RF008)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [Recebido, Em preparo, Pronto, Entregue]
+      responses:
+        '200':
+          description: Status atualizado com sucesso.
+
+  /admin/paid-orders:
+    get:
+      summary: Retorna a lista de pedidos pagos (status 'Recebido')
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de pedidos com status 'Recebido'.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    customer_name:
+                      type: string
+                    customer_table:
+                      type: string
+                    status:
+                      type: string
+                      enum: [Recebido, Em preparo, Pronto, Entregue]
+                    total_cents:
+                      type: integer
+                    created_at:
+                      type: string
+                      format: date-time
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          item_id:
+                            type: integer
+                          name:
+                            type: string
+                          qty:
+                            type: integer
+                          unit_price_cents:
+                            type: integer
+                          options:
+                            type: array
+                            items:
+                              type: object
+                          image_url:
+                            type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        short_desc:
+          type: string
+        ingredients:
+          type: string
+        price_cents:
+          type: integer
+        image_url:
+          type: string
+        active:
+          type: boolean
+    CartItem:
+      type: object
+      properties:
+        cart_id:
+          type: integer
+        quantity:
+          type: integer
+        item_id:
+          type: integer
+        name:
+          type: string
+        price_cents:
+          type: integer
+        image_url:
+          type: string
+    OrderPayload:
+      type: object
+      properties:
+        customer_name:
+          type: string
+        customer_table:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              item_id:
+                type: integer
+              qty:
+                type: integer

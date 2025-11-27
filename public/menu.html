@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cardápio - Mania de Açaí</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* Custom styles for navigation */
+    .top-nav {
+      background-color: #330050;
+      padding: 0.5rem 0;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .top-nav a {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .top-nav a:hover {
+      background-color: #4a0072;
+    }
+  </style>
+</head>
+<body class="bg-[#0b0316] text-white">
+  <div class="min-h-screen">
+    <!-- Fundo decorativo -->
+    <div class="pointer-events-none fixed inset-0 -z-10">
+      <div class="absolute -top-40 -left-32 h-80 w-80 rounded-full bg-purple-700/30 blur-[120px]"></div>
+      <div class="absolute top-20 right-0 h-96 w-96 rounded-full bg-fuchsia-600/25 blur-[120px]"></div>
+      <div class="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-indigo-500/20 blur-[120px]"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-6 py-6">
+      <div class="flex items-center gap-3">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 shadow-lg shadow-fuchsia-900/30">
+          <span class="text-xl font-black">Aç</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold leading-tight md:text-2xl">Mania de Açaí</h1>
+          <p class="text-sm text-white/70">Vitrine de sabores artesanais</p>
+        </div>
+      </div>
+      <div class="relative hidden max-w-md flex-1 items-center md:flex">
+        <input id="search-query" placeholder="Buscar sabor, ingrediente…" class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-sm outline-none placeholder:text-white/50 backdrop-blur-sm focus:ring-2 focus:ring-purple-600/50">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pointer-events-none absolute right-3 h-5 w-5 text-white/60">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+      </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="top-nav">
+      <a href="/home">Home</a>
+      <a href="/cardapio">Cardápio</a>
+      <a href="/cart">Carrinho</a>
+    </nav>
+
+    <!-- Barra de categorias -->
+    <section id="categories-bar" class="mx-auto w-full max-w-7xl px-6">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <h2 class="text-lg font-semibold text-white/90">Categorias</h2>
+      </div>
+      <div id="categories-container" class="no-scrollbar -mx-1 flex snap-x gap-2 overflow-x-auto pb-1">
+        <!-- Botões de categoria serão inseridos aqui -->
+      </div>
+      <div class="mt-4 md:hidden">
+        <input id="search-query-mobile" placeholder="Buscar sabor, ingrediente…" class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none placeholder:text-white/50 backdrop-blur-sm focus:ring-2 focus:ring-purple-600/50">
+      </div>
+    </section>
+
+    <!-- Grid de itens -->
+    <main id="menu-grid" class="mx-auto w-full max-w-7xl px-6 pb-16 pt-6">
+      <!-- Itens do menu serão inseridos aqui -->
+    </main>
+
+    <!-- Modal de detalhes -->
+    <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+      <div id="modal-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div id="modal-content" class="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 shadow-2xl">
+        <!-- Conteúdo do modal será inserido aqui -->
+      </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="border-t border-white/10 bg-black/20 px-6 py-8 text-center text-sm text-white/60">
+      © 2025 Mania de Açaí — qualidade artesanal. Feito com ❤.
+    </footer>
+  </div>
+
+  <script src="/menu.js"></script>
+</body>
+</html>

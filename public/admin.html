@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mania de Açaí – Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: dark; }
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0b0316] text-white">
+  <!-- BG Decorativo -->
+  <div class="pointer-events-none fixed inset-0 -z-10">
+    <div class="absolute -top-40 -left-32 h-80 w-80 rounded-full bg-purple-700/30 blur-[120px]"></div>
+    <div class="absolute top-20 right-0 h-[30rem] w-[30rem] rounded-full bg-fuchsia-600/25 blur-[140px]"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="mx-auto w-full max-w-7xl px-6 py-6">
+    <div class="flex items-center justify-between gap-4">
+      <a href="/admin.html" class="flex items-center gap-3">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 shadow-lg shadow-fuchsia-900/30">
+          <span class="text-xl font-black">Aç</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold leading-tight md:text-2xl">Mania de Açaí</h1>
+          <p class="text-sm text-white/70">Painel Administrativo</p>
+        </div>
+      </a>
+    </div>
+  </header>
+
+  <!-- Conteúdo -->
+  <main class="mx-auto w-full max-w-4xl px-6 pb-20">
+    <!-- Login Form -->
+    <section id="login-section">
+      <div class="mx-auto max-w-sm">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-8">
+          <h2 class="text-center text-2xl font-bold text-white/90">Login</h2>
+          <form id="login-form" class="mt-6 space-y-4">
+            <div>
+              <label for="email" class="mb-1 inline-block text-sm text-white/80">Email</label>
+              <input type="email" id="email" name="email" required class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" placeholder="seu@email.com" />
+            </div>
+            <div>
+              <label for="password" class="mb-1 inline-block text-sm text-white/80">Senha</label>
+              <input type="password" id="password" name="password" required class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" />
+            </div>
+            <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-fuchsia-900/30 hover:opacity-95">Entrar</button>
+            <p id="login-error" class="text-center text-sm text-red-400"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashboard-section" class="hidden">
+      <div class="mb-4 flex justify-between items-center">
+          <h2 class="text-2xl font-bold">Pedidos</h2>
+          <div class="flex gap-2">
+            <a href="/admin/paid-orders" class="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-blue-900/30 hover:opacity-95">Ver Fila de Pedidos</a>
+            <a href="/admin_delivery.html" class="rounded-xl bg-gradient-to-r from-green-600 to-teal-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-green-900/30 hover:opacity-95">Ver Pedidos para Entrega</a>
+            <button id="logout-btn" class="text-sm text-white/70 hover:text-white">Sair</button>
+          </div>
+      </div>
+      
+      <!-- Filtros -->
+      <div class="mb-4 flex gap-2">
+        <button data-status="" class="status-filter-btn active-filter rounded-full px-4 py-1.5 text-sm">Todos</button>
+        <button data-status="Recebido" class="status-filter-btn rounded-full px-4 py-1.5 text-sm">Recebidos</button>
+        <button data-status="Em preparo" class="status-filter-btn rounded-full px-4 py-1.5 text-sm">Em Preparo</button>
+        <button data-status="Pronto" class="status-filter-btn rounded-full px-4 py-1.5 text-sm">Prontos</button>
+        <button data-status="Entregue" class="status-filter-btn rounded-full px-4 py-1.5 text-sm">Entregues</button>
+      </div>
+
+      <!-- Lista de Pedidos -->
+      <div id="orders-list" class="space-y-4">
+        <!-- Pedidos serão inseridos aqui -->
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const loginSection = document.getElementById('login-section');
+    const dashboardSection = document.getElementById('dashboard-section');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const ordersList = document.getElementById('orders-list');
+    const logoutBtn = document.getElementById('logout-btn');
+    const filterBtns = document.querySelectorAll('.status-filter-btn');
+
+    const API_TOKEN_KEY = 'acai_admin_token';
+
+    function getApiHeaders() {
+        const token = localStorage.getItem(API_TOKEN_KEY);
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+    }
+
+    async function fetchOrders(status = '') {
+        try {
+            const url = status ? `/api/admin/orders?status=${status}` : '/api/admin/orders';
+            const res = await fetch(url, { headers: getApiHeaders() });
+            if (res.status === 401) {
+                logout();
+                return;
+            }
+            if (!res.ok) throw new Error('Falha ao buscar pedidos.');
+            const orders = await res.json();
+            renderOrders(orders);
+        } catch (err) {
+            ordersList.innerHTML = `<p class="text-red-400">${err.message}</p>`;
+        }
+    }
+
+    function renderOrders(orders) {
+        ordersList.innerHTML = '';
+        if (orders.length === 0) {
+            ordersList.innerHTML = '<p class="text-white/70">Nenhum pedido encontrado.</p>';
+            return;
+        }
+
+        orders.forEach(order => {
+            const orderEl = document.createElement('div');
+            orderEl.className = 'rounded-2xl border border-white/10 bg-white/5 p-4';
+            orderEl.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold">Pedido #${order.id}</h3>
+                        <p class="text-sm text-white/70">Mesa: ${order.customer_table || 'N/A'}</p>
+                        <p class="text-sm text-white/70">Cliente: ${order.customer_name || 'N/A'}</p>
+                        <p class="text-sm text-white/70">Total de Itens: ${order.total_items}</p>
+                        <p class="text-sm text-white/70">Data: ${new Date(order.created_at).toLocaleString('pt-BR')}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold">${order.status}</p>
+                        <select data-order-id="${order.id}" class="status-select mt-2 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-sm">
+                            <option value="Recebido" ${order.status === 'Recebido' ? 'selected' : ''}>Recebido</option>
+                            <option value="Em preparo" ${order.status === 'Em preparo' ? 'selected' : ''}>Em preparo</option>
+                            <option value="Pronto" ${order.status === 'Pronto' ? 'selected' : ''}>Pronto</option>
+                            <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            ordersList.appendChild(orderEl);
+        });
+    }
+
+    async function updateOrderStatus(orderId, status) {
+        try {
+            const res = await fetch(`/api/admin/orders/${orderId}/status`, {
+                method: 'PATCH',
+                headers: getApiHeaders(),
+                body: JSON.stringify({ status })
+            });
+            if (!res.ok) throw new Error('Falha ao atualizar status.');
+            fetchOrders(document.querySelector('.status-filter-btn.active-filter').dataset.status);
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    function showDashboard() {
+        loginSection.classList.add('hidden');
+        dashboardSection.classList.remove('hidden');
+        fetchOrders();
+    }
+
+    function showLogin() {
+        loginSection.classList.remove('hidden');
+        dashboardSection.classList.add('hidden');
+    }
+
+    function logout() {
+        localStorage.removeItem(API_TOKEN_KEY);
+        showLogin();
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginError.textContent = '';
+        const email = e.target.email.value;
+        const password = e.target.password.value;
+
+        try {
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Credenciais inválidas');
+            
+            localStorage.setItem(API_TOKEN_KEY, data.token);
+            showDashboard();
+        } catch (err) {
+            loginError.textContent = err.message;
+        }
+    });
+
+    logoutBtn.addEventListener('click', logout);
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            filterBtns.forEach(b => b.classList.remove('active-filter'));
+            e.target.classList.add('active-filter');
+            fetchOrders(e.target.dataset.status);
+        });
+    });
+
+    ordersList.addEventListener('change', (e) => {
+        if (e.target.classList.contains('status-select')) {
+            const orderId = e.target.dataset.orderId;
+            const status = e.target.value;
+            updateOrderStatus(orderId, status);
+        }
+    });
+
+    // Initial check
+    if (localStorage.getItem(API_TOKEN_KEY)) {
+        showDashboard();
+    } else {
+        showLogin();
+    }
+
+  </script>
+  <style>
+    .active-filter {
+        background-color: rgb(147 51 234);
+        color: white;
+    }
+  </style>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mania de Açaí – Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght @400;500;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: dark; }
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0b0316] text-white">
+  <!-- BG Decorativo -->
+  <div class="pointer-events-none fixed inset-0 -z-10">
+    <div class="absolute -top-40 -left-32 h-80 w-80 rounded-full bg-purple-700/30 blur-[120px]"></div>
+    <div class="absolute top-20 right-0 h-[30rem] w-[30rem] rounded-full bg-fuchsia-600/25 blur-[140px]"></div>
+    <div class="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-indigo-500/20 blur-[120px]"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="mx-auto w-full max-w-7xl px-6 py-6">
+    <div class="flex items-center justify-between gap-4">
+      <a href="#" class="flex items-center gap-3">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 shadow-lg shadow-fuchsia-900/30">
+          <span class="text-xl font-black">Aç</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold leading-tight md:text-2xl">Mania de Açaí</h1>
+          <p class="text-sm text-white/70">Qualidade artesanal desde 2015</p>
+        </div>
+      </a>
+
+      <nav class="hidden items-center gap-2 sm:flex">
+        <a href="/cardapio" class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">Cardápio</a>
+        <a href="/carrinho" class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">Carrinho</a>
+        <a href="/my-orders" class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">Meus Pedidos</a>
+        <a href="#contato" class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">Contato</a>
+        <a href="/docs" class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">Docs API</a>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <a href="/cardapio" class="rounded-full border border-fuchsia-400/50 bg-fuchsia-400/10 px-4 py-2 text-sm font-semibold text-fuchsia-100 hover:bg-fuchsia-400/20">Ver Catálogo</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="mx-auto w-full max-w-7xl px-6">
+    <div class="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
+      <div>
+        <h2 class="text-3xl font-extrabold leading-tight md:text-5xl">
+          O melhor <span class="bg-gradient-to-r from-fuchsia-300 to-purple-300 bg-clip-text text-transparent">açaí artesanal</span> da cidade.
+        </h2>
+        <p class="mt-4 text-white/70">
+          Cremoso, equilibrado e com os toppings que você ama. Peça no balcão, receba na mesa ou retire no local.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="/cardapio" class="rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-fuchsia-900/30 hover:opacity-95">Ver cardápio</a>
+          <a href="/carrinho" class="rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold hover:bg-white/10">Carrinho</a>
+        </div>
+        <div class="mt-6 flex items-center gap-4 text-sm text-white/70">
+          <div class="flex items-center gap-2"><span class="text-fuchsia-300">●</span> Ingredientes selecionados</div>
+          <div class="flex items-center gap-2"><span class="text-fuchsia-300">●</span> Opções sem lactose</div>
+        </div>
+      </div>
+      <div class="relative">
+        <div class="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl">
+          <img src="/img/loja_franquia4.png" alt="Tigela de açaí" class="h-72 w-full object-cover md:h-[22rem]" />
+        </div>
+        <div class="absolute -bottom-4 -left-4 hidden rounded-2xl border border-fuchsia-400/30 bg-fuchsia-400/10 px-4 py-2 text-xs text-fuchsia-100 shadow-xl backdrop-blur md:block">Aberto hoje até 22h</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="mx-auto w-full max-w-7xl px-6 py-20">
+    <div class="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-fuchsia-700/30 to-purple-700/20 p-8 text-center shadow-2xl">
+      <h4 class="text-2xl font-bold">Peça agora e retire em poucos minutos</h4>
+      <p class="mt-2 text-white/70">Faça seu pedido pelo balcão ou chame a gente pelo WhatsApp.</p>
+      <div class="mt-4 flex items-center justify-center gap-3">
+        <a href="#contato" class="rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-fuchsia-900/30 hover:opacity-95">Contato</a>
+        <a href="/cardapio" class="rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold hover:bg-white/10">Ver cardápio</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Rodapé -->
+  <footer id="contato" class="mt-14 border-t border-white/10 bg-black/20 px-6 py-10">
+    <div class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 md:grid-cols-3">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600">
+            <span class="text-lg font-black">Aç</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold">Mania de Açaí</p>
+            <p class="text-xs text-white/70">Qualidade artesanal</p>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-white/70">Av. Pedro Duarte Amoroso, 3093 - Jardim Julia, Cravinhos - SP, 14140-000</p>
+      </div>
+      <div class="text-sm">
+        <p class="font-semibold">Horários</p>
+        <p class="mt-2 text-white/70">Seg–Sáb: 12h–22h</p>
+        <p class="text-white/70">Dom: 14h–20h</p>
+      </div>
+      <div class="text-sm">
+        <p class="font-semibold">Contato</p>
+        <p class="mt-2 text-white/70">WhatsApp: (13) 99629-6452</p>
+        <p class="text-white/70">Instagram: @maniadeacaicravinhos</p>
+      </div>
+    </div>
+    <p class="mt-8 text-center text-xs text-white/50">© <span id="year"></span> Mania de Açaí — Feito com ❤.</p>
+  </footer>
+
+    }
+  </script>
+  <script>
+    const yearEl = document.getElementById('year');
+    yearEl.textContent = new Date().getFullYear();
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userName = payload.name;
+        
+        const welcomeMessage = document.createElement('p');
+        welcomeMessage.className = 'text-sm text-white/80';
+        welcomeMessage.textContent = `Bem-vindo(a), ${userName}!`;
+
+        const logoutButton = document.createElement('a');
+        logoutButton.href = '#';
+        logoutButton.className = 'rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10';
+        logoutButton.textContent = 'Sair';
+        logoutButton.onclick = () => {
+          localStorage.removeItem('token');
+          window.location.href = '/login.html';
+        };
+
+        const nav = document.querySelector('nav');
+        nav.parentNode.insertBefore(welcomeMessage, nav.nextSibling);
+        nav.parentNode.insertBefore(logoutButton, welcomeMessage.nextSibling);
+
+      } catch (e) {
+        console.error('Erro ao decodificar o token:', e);
+        localStorage.removeItem('token');
+      }
+    }
+  </script>
+</body>
+</html>
