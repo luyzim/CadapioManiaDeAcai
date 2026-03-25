@@ -1,192 +1,366 @@
 const router = require("express").Router();
 const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
 const path = require("path");
 
-// Multer storage configuration
+const { requireAdmin, signAdminToken } = require("../services/jwt-auth");
+
+const prisma = new PrismaClient();
+
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '..', 'public', 'uploads'));
+  destination(req, file, cb) {
+    cb(null, path.join(__dirname, "..", "public", "uploads"));
   },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
+  filename(req, file, cb) {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(
+      null,
+      `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`
+    );
+  },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
-function auth(req, res, next) {
-  const h = req.headers.authorization || "";
-  const token = h.startsWith("Bearer ") ? h.slice(7) : "";
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload; // { id, email }
-    next();
-  } catch {
-    return res.status(401).json({ error: "unauthorized" });
-  }
+function normalizeRequiredString(value) {
+  return String(value || "").trim();
 }
 
-// POST /api/admin/login
+function normalizeOptionalString(value) {
+  const normalized = String(value || "").trim();
+  return normalized ? normalized : null;
+}
+
+function parseInteger(value) {
+  if (typeof value === "number" && Number.isInteger(value)) {
+    return value;
+  }
+
+  const normalized = String(value || "").trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(normalized, 10);
+  return Number.isInteger(parsed) ? parsed : null;
+}
+
+function parseBoolean(value, fallback = true) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (value == null) {
+    return fallback;
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  if (["true", "1", "yes", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["false", "0", "no", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return fallback;
+}
+
+function buildCategoryPayload(body) {
+  const name = normalizeRequiredString(body?.name);
+
+  if (!name) {
+    return { error: "name obrigatorio" };
+  }
+
+  return {
+    data: {
+      name,
+    },
+  };
+}
+
+function buildItemPayload(body) {
+  const categoryId = parseInteger(body?.category_id);
+  const name = normalizeRequiredString(body?.name);
+  const priceCents = parseInteger(body?.price_cents);
+
+  if (categoryId == null || categoryId <= 0) {
+    return { error: "category_id invalido" };
+  }
+
+  if (!name) {
+    return { error: "name obrigatorio" };
+  }
+
+  if (priceCents == null || priceCents < 0) {
+    return { error: "price_cents invalido" };
+  }
+
+  return {
+    data: {
+      category_id: categoryId,
+      name,
+      short_desc: normalizeOptionalString(body?.short_desc),
+      ingredients: normalizeOptionalString(body?.ingredients),
+      price_cents: priceCents,
+      image_url: normalizeOptionalString(body?.image_url),
+      active: parseBoolean(body?.active, true),
+    },
+  };
+}
+
+function handleAdminCrudError(res, error, notFoundMessage) {
+  if (error.code === "P2025") {
+    return res.status(404).json({ error: notFoundMessage });
+  }
+
+  if (error.code === "P2002") {
+    return res.status(409).json({ error: "registro duplicado" });
+  }
+
+  if (error.code === "P2003") {
+    return res.status(400).json({ error: "relacao invalida" });
+  }
+
+  return res.status(500).json({ error: error.message });
+}
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body || {};
+
   try {
     const admin = await prisma.admins.findUnique({ where: { email } });
-    if (!admin) return res.status(401).json({ error: "credenciais inválidas" });
-    const ok = await bcrypt.compare(password || "", admin.pass_hash);
-    if (!ok) return res.status(401).json({ error: "credenciais inválidas" });
-    const token = jwt.sign({ id: admin.id, email }, process.env.JWT_SECRET, { expiresIn: "8h" });
-    res.json({ token });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+    if (!admin) {
+      return res.status(401).json({ error: "credenciais invalidas" });
+    }
+
+    const isValidPassword = await bcrypt.compare(password || "", admin.pass_hash);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: "credenciais invalidas" });
+    }
+
+    const token = signAdminToken(admin);
+    return res.json({ token });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/admin/upload
-router.post("/upload", auth, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Nenhum arquivo foi enviado.' });
-  }
-  // The file is uploaded, return the URL
-  const fileUrl = `/uploads/${req.file.filename}`;
-  res.json({ imageUrl: fileUrl });
-});
-
-
-// --- CRUD CATEGORIES
-router.post("/categories", auth, async (req, res) => {
-  const { name } = req.body || {};
-  if (!name) return res.status(400).json({ error: "name obrigatório" });
+router.get("/categories", requireAdmin, async (req, res) => {
   try {
-    const category = await prisma.categories.create({ data: { name } });
-    res.status(201).json(category);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+    const categories = await prisma.categories.findMany({
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return res.json(categories);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 });
 
-router.put("/categories/:id", auth, async (req, res) => {
-  const id = +req.params.id;
-  const { name } = req.body || {};
+router.get("/items", requireAdmin, async (req, res) => {
+  try {
+    const items = await prisma.items.findMany({
+      include: {
+        categories: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: [
+        {
+          categories: {
+            name: "asc",
+          },
+        },
+        {
+          name: "asc",
+        },
+      ],
+    });
+
+    return res.json(
+      items.map((item) => ({
+        id: item.id,
+        category_id: item.category_id,
+        category_name: item.categories.name,
+        name: item.name,
+        short_desc: item.short_desc,
+        ingredients: item.ingredients,
+        price_cents: item.price_cents,
+        image_url: item.image_url,
+        active: item.active,
+      }))
+    );
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/upload", requireAdmin, upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Nenhum arquivo foi enviado." });
+  }
+
+  const fileUrl = `/uploads/${req.file.filename}`;
+  return res.json({ imageUrl: fileUrl });
+});
+
+router.post("/categories", requireAdmin, async (req, res) => {
+  const payload = buildCategoryPayload(req.body);
+  if (payload.error) {
+    return res.status(400).json({ error: payload.error });
+  }
+
+  try {
+    const category = await prisma.categories.create({
+      data: payload.data,
+    });
+
+    return res.status(201).json(category);
+  } catch (error) {
+    return handleAdminCrudError(res, error, "categoria nao encontrada");
+  }
+});
+
+router.put("/categories/:id", requireAdmin, async (req, res) => {
+  const id = parseInteger(req.params.id);
+  if (id == null || id <= 0) {
+    return res.status(400).json({ error: "id invalido" });
+  }
+
+  const payload = buildCategoryPayload(req.body);
+  if (payload.error) {
+    return res.status(400).json({ error: payload.error });
+  }
+
   try {
     const category = await prisma.categories.update({
       where: { id },
-      data: { name },
+      data: payload.data,
     });
-    res.json(category);
-  } catch (e) {
-    if (e.code === 'P2025') return res.status(404).json({ error: "não encontrado" });
-    res.status(500).json({ error: e.message });
+
+    return res.json(category);
+  } catch (error) {
+    return handleAdminCrudError(res, error, "categoria nao encontrada");
   }
 });
 
-router.delete("/categories/:id", auth, async (req, res) => {
-  const id = +req.params.id;
+router.delete("/categories/:id", requireAdmin, async (req, res) => {
+  const id = parseInteger(req.params.id);
+  if (id == null || id <= 0) {
+    return res.status(400).json({ error: "id invalido" });
+  }
+
   try {
     await prisma.categories.delete({ where: { id } });
-    res.status(204).end();
-  } catch (e) {
-    if (e.code === 'P2025') return res.status(404).json({ error: "não encontrado" });
-    res.status(500).json({ error: e.message });
+    return res.status(204).end();
+  } catch (error) {
+    return handleAdminCrudError(res, error, "categoria nao encontrada");
   }
 });
 
-// --- CRUD ITEMS
-router.post("/items", auth, async (req, res) => {
-  const { category_id, name, short_desc, ingredients, price_cents, image_url, active } = req.body || {};
-  if (!category_id || !name || price_cents == null) return res.status(400).json({ error: "campos obrigatórios faltando" });
+router.post("/items", requireAdmin, async (req, res) => {
+  const payload = buildItemPayload(req.body);
+  if (payload.error) {
+    return res.status(400).json({ error: payload.error });
+  }
+
   try {
     const item = await prisma.items.create({
-      data: {
-        category_id,
-        name,
-        short_desc,
-        ingredients,
-        price_cents,
-        image_url,
-        active: active ?? true,
-      }
+      data: payload.data,
     });
-    res.status(201).json(item);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+
+    return res.status(201).json(item);
+  } catch (error) {
+    return handleAdminCrudError(res, error, "item nao encontrado");
+  }
 });
 
-router.put("/items/:id", auth, async (req, res) => {
-  const id = +req.params.id;
-  const { category_id, name, short_desc, ingredients, price_cents, image_url, active } = req.body || {};
+router.put("/items/:id", requireAdmin, async (req, res) => {
+  const id = parseInteger(req.params.id);
+  if (id == null || id <= 0) {
+    return res.status(400).json({ error: "id invalido" });
+  }
+
+  const payload = buildItemPayload(req.body);
+  if (payload.error) {
+    return res.status(400).json({ error: payload.error });
+  }
+
   try {
     const item = await prisma.items.update({
       where: { id },
-      data: {
-        category_id,
-        name,
-        short_desc,
-        ingredients,
-        price_cents,
-        image_url,
-        active,
-      }
+      data: payload.data,
     });
-    res.json(item);
-  } catch (e) {
-    if (e.code === 'P2025') return res.status(404).json({ error: "não encontrado" });
-    res.status(500).json({ error: e.message });
+
+    return res.json(item);
+  } catch (error) {
+    return handleAdminCrudError(res, error, "item nao encontrado");
   }
 });
 
-router.delete("/items/:id", auth, async (req, res) => {
-  const id = +req.params.id;
+router.delete("/items/:id", requireAdmin, async (req, res) => {
+  const id = parseInteger(req.params.id);
+  if (id == null || id <= 0) {
+    return res.status(400).json({ error: "id invalido" });
+  }
+
   try {
     await prisma.items.delete({ where: { id } });
-    res.status(204).end();
-  } catch (e) {
-    if (e.code === 'P2025') return res.status(404).json({ error: "não encontrado" });
-    res.status(500).json({ error: e.message });
+    return res.status(204).end();
+  } catch (error) {
+    return handleAdminCrudError(res, error, "item nao encontrado");
   }
 });
 
-// PATCH /api/admin/orders/:id/status  (RF008)
-router.patch("/orders/:id/status", auth, async (req, res) => {
+router.patch("/orders/:id/status", requireAdmin, async (req, res) => {
   const id = BigInt(req.params.id);
   const { status } = req.body || {};
-  const allowed = ['Recebido', 'Em preparo', 'Pronto', 'Entregue'];
-  if (!allowed.includes(status)) return res.status(400).json({ error: "status inválido" });
+  const allowed = ["Recebido", "Em preparo", "Pronto", "Entregue"];
+  if (!allowed.includes(status)) {
+    return res.status(400).json({ error: "status invalido" });
+  }
 
-  // Map the string value from the request to the Prisma enum identifier
-  const statusForDb = status === 'Em preparo' ? 'Em_preparo' : status;
+  const statusForDb = status === "Em preparo" ? "Em_preparo" : status;
 
   try {
-    await prisma.$transaction(async (prisma) => {
-      await prisma.orders.update({
+    await prisma.$transaction(async (transaction) => {
+      await transaction.orders.update({
         where: { id },
         data: { status: statusForDb },
       });
 
-      await prisma.order_status_history.create({
+      await transaction.order_status_history.create({
         data: {
           order_id: id,
           status: statusForDb,
           changed_by: req.user.id,
-        }
+        },
       });
     });
-    res.json({ ok: true });
-  } catch (e) {
-    if (e.code === 'P2025') return res.status(404).json({ error: "pedido não encontrado" });
-    res.status(500).json({ error: e.message });
+
+    return res.json({ ok: true });
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "pedido nao encontrado" });
+    }
+
+    return res.status(500).json({ error: error.message });
   }
 });
 
-// GET /api/admin/orders (RF007)
-router.get("/orders", auth, async (req, res) => {
+router.get("/orders", requireAdmin, async (req, res) => {
   const { status } = req.query;
-  
+
   let whereClause = {};
   if (status) {
-    // Map the public-facing string to the internal Prisma enum identifier if needed
-    const statusForDb = status === 'Em preparo' ? 'Em_preparo' : status;
+    const statusForDb = status === "Em preparo" ? "Em_preparo" : status;
     whereClause = { status: statusForDb };
   }
 
@@ -195,30 +369,33 @@ router.get("/orders", auth, async (req, res) => {
       where: whereClause,
       include: {
         _count: {
-          select: { order_items: true }
-        }
+          select: { order_items: true },
+        },
       },
       orderBy: {
-        created_at: 'desc',
+        created_at: "desc",
       },
       take: 200,
     });
-    const response = orders.map(o => ({
-      ...o,
-      total_items: o._count.order_items
+
+    const response = orders.map((order) => ({
+      ...order,
+      total_items: order._count.order_items,
     }));
-    res.json(response);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+
+    return res.json(response);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 });
 
-// GET /api/admin/paid-orders - Get all active orders (not 'Entregue')
-router.get("/paid-orders", auth, async (req, res) => {
+router.get("/paid-orders", requireAdmin, async (req, res) => {
   try {
     const orders = await prisma.orders.findMany({
       where: {
         NOT: {
           status: "Entregue",
-        }
+        },
       },
       include: {
         order_items: {
@@ -234,36 +411,35 @@ router.get("/paid-orders", auth, async (req, res) => {
         },
       },
       orderBy: {
-        created_at: 'asc', // Oldest received orders first
+        created_at: "asc",
       },
     });
 
-    const response = orders.map(order => ({
+    const response = orders.map((order) => ({
       id: order.id,
       customer_name: order.customer_name,
       customer_table: order.customer_table,
       status: order.status,
       total_cents: order.total_cents,
       created_at: order.created_at,
-      items: order.order_items.map(oi => ({
-        item_id: oi.item_id,
-        name: oi.items.name,
-        qty: oi.qty,
-        unit_price_cents: oi.unit_price_cents,
-        options: oi.options,
-        image_url: oi.items.image_url,
+      items: order.order_items.map((orderItem) => ({
+        item_id: orderItem.item_id,
+        name: orderItem.items.name,
+        qty: orderItem.qty,
+        unit_price_cents: orderItem.unit_price_cents,
+        options: orderItem.options,
+        image_url: orderItem.items.image_url,
       })),
     }));
 
-    res.json(response);
-  } catch (e) {
-    console.error("Database error in /api/admin/paid-orders:", e);
-    res.status(500).json({ error: e.message });
+    return res.json(response);
+  } catch (error) {
+    console.error("Database error in /api/admin/paid-orders:", error);
+    return res.status(500).json({ error: error.message });
   }
 });
 
-// GET /api/admin/delivery-orders - Get all orders with status 'Pronto'
-router.get("/delivery-orders", auth, async (req, res) => {
+router.get("/delivery-orders", requireAdmin, async (req, res) => {
   try {
     const orders = await prisma.orders.findMany({
       where: {
@@ -283,31 +459,31 @@ router.get("/delivery-orders", auth, async (req, res) => {
         },
       },
       orderBy: {
-        created_at: 'asc',
+        created_at: "asc",
       },
     });
 
-    const response = orders.map(order => ({
+    const response = orders.map((order) => ({
       id: order.id,
       customer_name: order.customer_name,
       customer_table: order.customer_table,
       status: order.status,
       total_cents: order.total_cents,
       created_at: order.created_at,
-      items: order.order_items.map(oi => ({
-        item_id: oi.item_id,
-        name: oi.items.name,
-        qty: oi.qty,
-        unit_price_cents: oi.unit_price_cents,
-        options: oi.options,
-        image_url: oi.items.image_url,
+      items: order.order_items.map((orderItem) => ({
+        item_id: orderItem.item_id,
+        name: orderItem.items.name,
+        qty: orderItem.qty,
+        unit_price_cents: orderItem.unit_price_cents,
+        options: orderItem.options,
+        image_url: orderItem.items.image_url,
       })),
     }));
 
-    res.json(response);
-  } catch (e) {
-    console.error("Database error in /api/admin/delivery-orders:", e);
-    res.status(500).json({ error: e.message });
+    return res.json(response);
+  } catch (error) {
+    console.error("Database error in /api/admin/delivery-orders:", error);
+    return res.status(500).json({ error: error.message });
   }
 });
 

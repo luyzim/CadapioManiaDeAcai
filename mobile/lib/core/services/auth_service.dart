@@ -87,19 +87,37 @@ class AuthService {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final response = await _client.post(
-      Uri.parse('${ApiConfig.baseUrl}$path'),
-      headers: const <String, String>{
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(body),
-    );
+    final Uri url = Uri.parse('${ApiConfig.baseUrl}$path');
+    late final http.Response response;
+
+    try {
+      response = await _client
+          .post(
+            url,
+            headers: const <String, String>{
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+    } on Exception {
+      throw AuthFailure(
+        'Nao foi possivel conectar ao servidor em ${ApiConfig.baseUrl}. '
+        'Verifique se o backend esta ativo e se o IP configurado esta correto.',
+      );
+    }
 
     Map<String, dynamic> data = <String, dynamic>{};
     if (response.body.isNotEmpty) {
-      data = Map<String, dynamic>.from(
-        jsonDecode(response.body) as Map<String, dynamic>,
-      );
+      try {
+        data = Map<String, dynamic>.from(
+          jsonDecode(response.body) as Map<String, dynamic>,
+        );
+      } on FormatException {
+        throw const AuthFailure(
+          'O servidor respondeu em um formato inesperado.',
+        );
+      }
     }
 
     if (response.statusCode >= 400) {

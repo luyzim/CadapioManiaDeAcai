@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../app/session_controller.dart';
 import '../../core/models/order_models.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/orders_service.dart';
@@ -47,6 +49,15 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   Future<void> _loadOrder() async {
     _pollingTimer?.cancel();
+    final String token = context.read<SessionController>().session?.token ?? '';
+
+    if (token.isEmpty) {
+      setState(() {
+        _errorMessage = 'Sua sessao expirou. Faca login novamente.';
+        _isLoading = false;
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -54,8 +65,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     });
 
     try {
-      final OrderDetails order =
-          await _ordersService.fetchOrderDetails(widget.orderId);
+      final OrderDetails order = await _ordersService.fetchOrderDetails(
+        token: token,
+        orderId: widget.orderId,
+      );
 
       if (!mounted) {
         return;
@@ -94,13 +107,22 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Future<void> _confirmDelivery() async {
+    final String token = context.read<SessionController>().session?.token ?? '';
+    if (token.isEmpty) {
+      setState(() => _errorMessage = 'Sua sessao expirou. Faca login novamente.');
+      return;
+    }
+
     setState(() {
       _isConfirming = true;
       _errorMessage = null;
     });
 
     try {
-      await _ordersService.confirmDelivery(widget.orderId);
+      await _ordersService.confirmDelivery(
+        token: token,
+        orderId: widget.orderId,
+      );
       await _loadOrder();
     } on ApiFailure catch (error) {
       if (!mounted) {

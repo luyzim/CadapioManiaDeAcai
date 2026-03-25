@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const ordersContainer = document.getElementById('delivery-orders-container');
     const API_BASE_URL = '/api';
+    const ADMIN_TOKEN_KEY = 'acai_admin_token';
 
     function getAuthToken() {
-        return localStorage.getItem('admin_jwt_token');
+        return localStorage.getItem(ADMIN_TOKEN_KEY);
     }
 
     function redirectToLogin() {

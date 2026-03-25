@@ -3,6 +3,15 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+router.use((req, res, next) => {
+  // Persist the anonymous session only when the cart flow is actually used.
+  if (!req.session.cartInitialized) {
+    req.session.cartInitialized = true;
+  }
+
+  next();
+});
+
 // GET /api/cart - Get all items in the cart
 router.get('/', async (req, res) => {
   try {

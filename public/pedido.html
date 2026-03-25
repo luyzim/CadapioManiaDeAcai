@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mania de Açaí – Seu Pedido</title>
+  <title>Mania de Acai - Seu Pedido</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -11,34 +11,39 @@
   <style>
     :root { color-scheme: dark; }
     body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .step { display: flex; flex-direction: column; align-items: center; width: 60px; }
+    .step-circle { display: flex; justify-content: center; align-items: center; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #4a0e8a; background-color: transparent; color: #4a0e8a; font-weight: bold; transition: all 0.3s ease; }
+    .step p { margin-top: 8px; color: #9ca3af; }
+    .step-line { flex-grow: 1; height: 2px; background-color: #4a0e8a; }
+    .step.completed .step-circle { background-color: #8b5cf6; border-color: #8b5cf6; color: white; }
+    .step.completed p { color: white; }
+    .step.active .step-circle { background-color: #a78bfa; border-color: #a78bfa; color: white; transform: scale(1.1); }
+    .step.active p { color: #a78bfa; font-weight: bold; }
   </style>
 </head>
 <body class="min-h-screen bg-[#0b0316] text-white">
-  <!-- BG Decorativo -->
   <div class="pointer-events-none fixed inset-0 -z-10">
     <div class="absolute -top-40 -left-32 h-80 w-80 rounded-full bg-purple-700/30 blur-[120px]"></div>
     <div class="absolute top-20 right-0 h-[30rem] w-[30rem] rounded-full bg-fuchsia-600/25 blur-[140px]"></div>
   </div>
 
-  <!-- Header -->
   <header class="mx-auto w-full max-w-7xl px-6 py-6">
     <div class="flex items-center justify-between gap-4">
       <a href="/home" class="flex items-center gap-3">
         <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 shadow-lg shadow-fuchsia-900/30">
-          <span class="text-xl font-black">Aç</span>
+          <span class="text-xl font-black">Ac</span>
         </div>
         <div>
-          <h1 class="text-xl font-bold leading-tight md:text-2xl">Mania de Açaí</h1>
+          <h1 class="text-xl font-bold leading-tight md:text-2xl">Mania de Acai</h1>
           <p class="text-sm text-white/70">Acompanhe seu pedido</p>
         </div>
       </a>
-      <a href="/cardapio" class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">Ver Cardápio</a>
+      <a href="/cardapio" class="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">Ver Cardapio</a>
     </div>
   </header>
 
-  <!-- Conteúdo -->
   <main class="mx-auto w-full max-w-2xl px-6 pb-20">
-    <div id="loading" class="text-center text-white/70">Carregando informações do pedido...</div>
+    <div id="loading" class="text-center text-white/70">Carregando informacoes do pedido...</div>
     <div id="error" class="hidden text-center text-red-400"></div>
     <div id="orderDetails" class="hidden space-y-6">
       <div class="text-center">
@@ -46,18 +51,17 @@
         <p class="text-white/70">Cliente: <span id="customerName"></span></p>
       </div>
 
-      <!-- Status Tracker -->
-      <div class="p-4 rounded-2xl border border-white/10 bg-white/5">
-        <h3 class="font-semibold text-lg mb-4">Status do Pedido</h3>
-        <div id="statusTracker" class="flex justify-between items-center text-xs text-center">
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <h3 class="mb-4 text-lg font-semibold">Status do Pedido</h3>
+        <div id="statusTracker" class="flex items-center justify-between text-center text-xs">
           <div class="step" data-status="Recebido">
-            <div class="step-circle">✓</div>
+            <div class="step-circle">1</div>
             <p>Recebido</p>
           </div>
           <div class="step-line"></div>
           <div class="step" data-status="Em preparo">
             <div class="step-circle">2</div>
-            <p>Em Preparo</p>
+            <p>Em preparo</p>
           </div>
           <div class="step-line"></div>
           <div class="step" data-status="Pronto">
@@ -72,32 +76,19 @@
         </div>
       </div>
 
-      <!-- Itens do Pedido -->
       <div>
-        <h3 class="font-semibold text-lg mb-3">Itens</h3>
+        <h3 class="mb-3 text-lg font-semibold">Itens</h3>
         <div id="orderItems" class="space-y-3"></div>
       </div>
 
-      <!-- Botão de Confirmação -->
-      <div id="confirmation-section" class="hidden text-center pt-4">
-        <p class="text-white/70 mb-3">Seu pedido está pronto! Confirme o recebimento após a entrega.</p>
-        <button id="confirm-delivery-btn" class="w-full max-w-xs mx-auto rounded-xl bg-gradient-to-r from-green-600 to-teal-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-green-900/30 hover:opacity-95">
+      <div id="confirmation-section" class="hidden pt-4 text-center">
+        <p class="mb-3 text-white/70">Seu pedido esta pronto! Confirme o recebimento apos a entrega.</p>
+        <button id="confirm-delivery-btn" class="mx-auto w-full max-w-xs rounded-xl bg-gradient-to-r from-green-600 to-teal-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-green-900/30 hover:opacity-95">
           Recebi meu pedido
         </button>
       </div>
     </div>
   </main>
-
-  <style>
-    .step { display: flex; flex-direction: column; align-items: center; width: 60px; }
-    .step-circle { display: flex; justify-content: center; align-items: center; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #4a0e8a; background-color: transparent; color: #4a0e8a; font-weight: bold; transition: all 0.3s ease; }
-    .step p { margin-top: 8px; color: #9ca3af; }
-    .step-line { flex-grow: 1; height: 2px; background-color: #4a0e8a; }
-    .step.completed .step-circle { background-color: #8b5cf6; border-color: #8b5cf6; color: white; }
-    .step.completed p { color: white; }
-    .step.active .step-circle { background-color: #a78bfa; border-color: #a78bfa; color: white; transform: scale(1.1); }
-    .step.active p { color: #a78bfa; font-weight: bold; }
-  </style>
 
   <script>
     const orderIdEl = document.getElementById('orderId');
@@ -110,27 +101,66 @@
     const confirmationSection = document.getElementById('confirmation-section');
     const confirmDeliveryBtn = document.getElementById('confirm-delivery-btn');
 
+    const API_TOKEN_KEY = 'token';
     const statusOrder = ['Recebido', 'Em preparo', 'Pronto', 'Entregue'];
 
-    const fmtBRL = (cents=0) => {
-      try { return (cents/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-      catch { return 'R$ ' + (cents/100).toFixed(2).replace('.', ','); }
-    };
+    function fmtBRL(cents = 0) {
+      try {
+        return (cents / 100).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        });
+      } catch {
+        return 'R$ ' + (cents / 100).toFixed(2).replace('.', ',');
+      }
+    }
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem(API_TOKEN_KEY);
+      return {
+        'Content-Type': 'application/json',
+        'x-authorization': `Bearer ${token}`,
+      };
+    }
+
+    function redirectToLogin() {
+      window.location.href = '/login.html';
+    }
 
     async function fetchOrder(id) {
       try {
-        const res = await fetch(`/api/orders/${id}`);
-        if (res.status === 404) throw new Error('Pedido não encontrado.');
-        if (!res.ok) throw new Error('Falha ao buscar o pedido.');
+        const token = localStorage.getItem(API_TOKEN_KEY);
+        if (!token) {
+          redirectToLogin();
+          return;
+        }
+
+        const res = await fetch(`/api/orders/${id}`, {
+          headers: getAuthHeaders(),
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          redirectToLogin();
+          return;
+        }
+
+        if (res.status === 404) {
+          throw new Error('Pedido nao encontrado.');
+        }
+
+        if (!res.ok) {
+          throw new Error('Falha ao buscar o pedido.');
+        }
+
         const order = await res.json();
         renderOrder(order);
 
         if (order.status !== 'Entregue') {
-          setTimeout(() => fetchOrder(id), 5000); // Poll every 5 seconds
+          setTimeout(() => fetchOrder(id), 5000);
         }
-      } catch (e) {
+      } catch (error) {
         loadingEl.classList.add('hidden');
-        errorEl.textContent = e.message;
+        errorEl.textContent = error.message;
         errorEl.classList.remove('hidden');
       }
     }
@@ -141,24 +171,21 @@
       orderDetailsEl.classList.remove('hidden');
 
       orderIdEl.textContent = `#${order.id}`;
-      customerNameEl.textContent = order.customer_name || 'Não informado';
+      customerNameEl.textContent = order.customer_name || 'Nao informado';
 
-      // Map DB status to display status
       const statusMap = {
-        "Recebido": "Recebido",
-        "Em_preparo": "Em preparo",
-        "Pronto": "Pronto",
-        "Entregue": "Entregue",
+        Recebido: 'Recebido',
+        Em_preparo: 'Em preparo',
+        Pronto: 'Pronto',
+        Entregue: 'Entregue',
       };
       const displayStatus = statusMap[order.status] || order.status;
 
-      // Update status tracker
       const currentStatusIndex = statusOrder.indexOf(displayStatus);
       const steps = statusTrackerEl.querySelectorAll('.step');
-      steps.forEach((step, index) => {
+      steps.forEach((step) => {
         step.classList.remove('active', 'completed');
-        const status = step.dataset.status;
-        const statusIndex = statusOrder.indexOf(status);
+        const statusIndex = statusOrder.indexOf(step.dataset.status);
         if (statusIndex < currentStatusIndex) {
           step.classList.add('completed');
         } else if (statusIndex === currentStatusIndex) {
@@ -166,25 +193,27 @@
         }
       });
 
-      // Show confirmation button if status is 'Pronto'
       if (order.status === 'Pronto') {
         confirmationSection.classList.remove('hidden');
       } else {
         confirmationSection.classList.add('hidden');
       }
-      
+
       if (order.status === 'Entregue') {
         confirmationSection.classList.remove('hidden');
         confirmDeliveryBtn.disabled = true;
-        confirmDeliveryBtn.textContent = 'Pedido Entregue e Finalizado';
+        confirmDeliveryBtn.textContent = 'Pedido entregue e finalizado';
         confirmDeliveryBtn.classList.remove('from-green-600', 'to-teal-600');
         confirmDeliveryBtn.classList.add('from-gray-500', 'to-gray-600', 'opacity-70');
+      } else {
+        confirmDeliveryBtn.disabled = false;
+        confirmDeliveryBtn.textContent = 'Recebi meu pedido';
+        confirmDeliveryBtn.classList.remove('from-gray-500', 'to-gray-600', 'opacity-70');
+        confirmDeliveryBtn.classList.add('from-green-600', 'to-teal-600');
       }
 
-
-      // Render items
-      orderItemsEl.innerHTML = order.order_items.map(item => `
-        <div class="flex items-center justify-between p-3 rounded-xl border border-white/10 bg-white/5">
+      orderItemsEl.innerHTML = order.order_items.map((item) => `
+        <div class="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-3">
           <div>
             <p class="font-semibold">${item.qty}x ${item.items.name}</p>
             <p class="text-xs text-white/60">${fmtBRL(item.unit_price_cents)} cada</p>
@@ -197,12 +226,29 @@
     async function confirmDelivery(id) {
       confirmDeliveryBtn.disabled = true;
       confirmDeliveryBtn.textContent = 'Confirmando...';
+
       try {
-        const res = await fetch(`/api/orders/${id}/confirm-delivery`, { method: 'POST' });
-        if (!res.ok) throw new Error('Falha ao confirmar entrega.');
-        // The polling will handle the UI update
-      } catch (err) {
-        alert(err.message);
+        const token = localStorage.getItem(API_TOKEN_KEY);
+        if (!token) {
+          redirectToLogin();
+          return;
+        }
+
+        const res = await fetch(`/api/orders/${id}/confirm-delivery`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          redirectToLogin();
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error('Falha ao confirmar entrega.');
+        }
+      } catch (error) {
+        alert(error.message);
         confirmDeliveryBtn.disabled = false;
         confirmDeliveryBtn.textContent = 'Recebi meu pedido';
       }
@@ -213,13 +259,12 @@
       const orderId = params.get('id');
       if (!orderId) {
         loadingEl.classList.add('hidden');
-        errorEl.textContent = 'ID do pedido não fornecido na URL. Ex: /pedido.html?id=123';
+        errorEl.textContent = 'ID do pedido nao fornecido na URL. Ex: /pedido.html?id=123';
         errorEl.classList.remove('hidden');
         return;
       }
-      
-      confirmDeliveryBtn.addEventListener('click', () => confirmDelivery(orderId));
 
+      confirmDeliveryBtn.addEventListener('click', () => confirmDelivery(orderId));
       fetchOrder(orderId);
     });
   </script>

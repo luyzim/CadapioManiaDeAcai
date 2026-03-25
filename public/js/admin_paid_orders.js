@@ -1,10 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     const ordersContainer = document.getElementById('orders-container');
     const API_BASE_URL = '/api'; // Assuming API is served from /api
+    const ADMIN_TOKEN_KEY = 'acai_admin_token';
 
     // Function to check for JWT token and redirect if not found
     function getAuthToken() {
-        return localStorage.getItem('admin_jwt_token');
+        return localStorage.getItem(ADMIN_TOKEN_KEY);
     }
 
     function redirectToLogin() {

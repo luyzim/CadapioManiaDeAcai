@@ -2,9 +2,12 @@ const express = require("express");
 require("dotenv").config();
 
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
 const { isValidEmail } = require("../services/email-validator");
+const {
+  requireClient,
+  signClientToken,
+} = require("../services/jwt-auth");
 
 const {
   firebaseAuth,
@@ -28,17 +31,7 @@ function normalizeEmail(value) {
 }
 
 function buildClientToken(client) {
-  return jwt.sign(
-    {
-      id: client.id,
-      email: client.email,
-      name: client.name,
-      phone: client.phone || null,
-      firebase_uid: client.firebase_uid || null,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "8h" }
-  );
+  return signClientToken(client);
 }
 
 function buildClientAuthResponse(client, extra = {}) {
@@ -53,32 +46,6 @@ function buildClientAuthResponse(client, extra = {}) {
     },
     ...extra,
   };
-}
-
-function getBearerToken(req) {
-  const authHeader =
-    req.headers.authorization || req.headers["x-authorization"] || "";
-
-  return authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7).trim()
-    : "";
-}
-
-function clientAuth(req, res, next) {
-  const token = getBearerToken(req);
-
-  if (!token) {
-    return res.status(401).json({ error: "unauthorized" });
-  }
-
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.client = payload;
-    next();
-  } catch (err) {
-    console.error("JWT verification error:", err);
-    return res.status(401).json({ error: "unauthorized" });
-  }
 }
 
 async function upsertClientProfile({
@@ -355,7 +322,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-router.get("/my-orders", clientAuth, async (req, res) => {
+router.get("/my-orders", requireClient, async (req, res) => {
   try {
     const orders = await prisma.orders.findMany({
       where: {

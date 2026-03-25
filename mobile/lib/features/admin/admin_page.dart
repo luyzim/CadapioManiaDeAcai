@@ -11,6 +11,7 @@ import '../../core/utils/email_validator.dart';
 import '../../shared/widgets/glass_card.dart';
 import '../../shared/widgets/gradient_button.dart';
 import '../../shared/widgets/status_pill.dart';
+import 'catalog_management_tab.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -51,7 +52,7 @@ class _AdminPageState extends State<AdminPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -357,6 +358,7 @@ class _AdminPageState extends State<AdminPage>
                   Tab(text: 'Pedidos'),
                   Tab(text: 'Fila'),
                   Tab(text: 'Entrega'),
+                  Tab(text: 'Cardapio'),
                 ],
               )
             : null,
@@ -392,6 +394,9 @@ class _AdminPageState extends State<AdminPage>
                     isLoading: _isLoadingDeliveryOrders,
                     errorMessage: _deliveryOrdersError,
                     onRefresh: _loadDeliveryOrders,
+                  ),
+                  CatalogManagementTab(
+                    token: adminSessionController.token ?? '',
                   ),
                 ],
               )

@@ -25,9 +25,15 @@ class OrdersService {
         .toList();
   }
 
-  Future<OrderDetails> fetchOrderDetails(String orderId) async {
+  Future<OrderDetails> fetchOrderDetails({
+    required String token,
+    required String orderId,
+  }) async {
     final Map<String, dynamic> data = Map<String, dynamic>.from(
-      await _apiClient.get('/api/orders/$orderId') as Map,
+      await _apiClient.get(
+        '/api/orders/$orderId',
+        bearerToken: token,
+      ) as Map,
     );
 
     return OrderDetails.fromMap(data);
@@ -62,7 +68,13 @@ class OrdersService {
     return CreatedOrder.fromMap(data);
   }
 
-  Future<void> confirmDelivery(String orderId) async {
-    await _apiClient.post('/api/orders/$orderId/confirm-delivery');
+  Future<void> confirmDelivery({
+    required String token,
+    required String orderId,
+  }) async {
+    await _apiClient.post(
+      '/api/orders/$orderId/confirm-delivery',
+      bearerToken: token,
+    );
   }
 }

@@ -76,6 +76,24 @@ class ApiClient {
     );
   }
 
+  Future<dynamic> put(
+    String path, {
+    Map<String, dynamic>? body,
+    String? bearerToken,
+    Map<String, String>? headers,
+  }) {
+    return _send(
+      () => _client.put(
+        Uri.parse('${ApiConfig.baseUrl}$path'),
+        headers: _buildHeaders(
+          bearerToken: bearerToken,
+          headers: headers,
+        ),
+        body: body == null ? null : jsonEncode(body),
+      ),
+    );
+  }
+
   Future<dynamic> delete(
     String path, {
     String? bearerToken,

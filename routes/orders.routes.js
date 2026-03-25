@@ -3,31 +3,9 @@ const router = require("express").Router();
 require("dotenv").config(); // Ensure env variables are loaded
 const { PrismaClient } = require("@prisma/client"); // padronize isso depois, ver passo 3
 const prisma = new PrismaClient();
-const jwt = require("jsonwebtoken"); // Import jwt
+const { requireClient } = require("../services/jwt-auth");
 
-// Middleware to authenticate clients
-function clientAuth(req, res, next) {
-  const authHeader =
-    req.headers.authorization || req.headers["x-authorization"] || "";
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7).trim()
-    : "";
-
-  if (!token) {
-    return res.status(401).json({ error: "unauthorized" });
-  }
-
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.client = payload; // { id, email, name }
-    next();
-  } catch (err) {
-    console.error("JWT Verification Error:", err); // Log the specific error
-    return res.status(401).json({ error: "unauthorized" });
-  }
-}
-
-router.post("/", clientAuth, async (req, res) => {
+router.post("/", requireClient, async (req, res) => {
   const { customer_name, customer_table, items } = req.body || {};
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: "Pedido vazio" });
@@ -86,11 +64,14 @@ router.post("/", clientAuth, async (req, res) => {
 });
 
 // GET /api/orders/:id - Rota para o cliente ver o status do pedido
-router.get("/:id", async (req, res) => {
+router.get("/:id", requireClient, async (req, res) => {
   const id = BigInt(req.params.id);
   try {
-    const order = await prisma.orders.findUnique({
-      where: { id },
+    const order = await prisma.orders.findFirst({
+      where: {
+        id,
+        client_id: req.client.id,
+      },
       include: {
         order_items: {
           include: {
@@ -113,11 +94,16 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST /api/orders/:id/confirm-delivery - Rota para o cliente confirmar a entrega
-router.post("/:id/confirm-delivery", async (req, res) => {
+router.post("/:id/confirm-delivery", requireClient, async (req, res) => {
   const id = BigInt(req.params.id);
   try {
     await prisma.$transaction(async (tx) => {
-      const order = await tx.orders.findUnique({ where: { id } });
+      const order = await tx.orders.findFirst({
+        where: {
+          id,
+          client_id: req.client.id,
+        },
+      });
       if (!order) throw new Error('not_found');
       if (order.status !== 'Pronto') {
         // Only allow confirmation if the order is ready
