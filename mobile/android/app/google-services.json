@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "870296768276",
+    "project_id": "acaicravinhos",
+    "storage_bucket": "acaicravinhos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:870296768276:android:a97f8393538efd581d3c01",
+        "android_client_info": {
+          "package_name": "com.example.flutter_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-yWfCBwNtx3hR5SqtD43FjcKPYzfaQ40"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:870296768276:android:7380e7b601ef27c11d3c01",
+        "android_client_info": {
+          "package_name": "com.maniadeacai.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-yWfCBwNtx3hR5SqtD43FjcKPYzfaQ40"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -7,8 +7,16 @@ const jwt = require("jsonwebtoken"); // Import jwt
 
 // Middleware to authenticate clients
 function clientAuth(req, res, next) {
-  const h = req.headers['x-authorization'] || "";
-  const token = h.startsWith("Bearer ") ? h.slice(7) : "";
+  const authHeader =
+    req.headers.authorization || req.headers["x-authorization"] || "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+
+  if (!token) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     req.client = payload; // { id, email, name }

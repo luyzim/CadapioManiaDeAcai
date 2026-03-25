@@ -3,82 +3,113 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mania de Açaí – Login</title>
+  <title>Mania de Acai - Login</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root { color-scheme: dark; }
-    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    body { font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   </style>
 </head>
 <body class="min-h-screen bg-[#0b0316] text-white">
-  <!-- BG Decorativo -->
   <div class="pointer-events-none fixed inset-0 -z-10">
     <div class="absolute -top-40 -left-32 h-80 w-80 rounded-full bg-purple-700/30 blur-[120px]"></div>
     <div class="absolute top-20 right-0 h-[30rem] w-[30rem] rounded-full bg-fuchsia-600/25 blur-[140px]"></div>
   </div>
 
-  <!-- Header -->
   <header class="mx-auto w-full max-w-7xl px-6 py-6">
     <div class="flex items-center justify-center gap-3">
       <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-fuchsia-600 shadow-lg shadow-fuchsia-900/30">
-        <span class="text-xl font-black">Aç</span>
+        <span class="text-xl font-black">Ac</span>
       </div>
       <div>
-        <h1 class="text-xl font-bold leading-tight md:text-2xl">Mania de Açaí</h1>
-        <p class="text-sm text-white/70">Seja bem-vindo</p>
+        <h1 class="text-xl font-bold leading-tight md:text-2xl">Mania de Acai</h1>
+        <p class="text-sm text-white/70">Acesse sua conta</p>
       </div>
     </div>
   </header>
 
-  <!-- Conteúdo -->
   <main class="mx-auto w-full max-w-sm px-6 pb-20">
-      <div class="rounded-2xl border border-white/10 bg-white/5 p-8">
-        <h2 class="text-center text-2xl font-bold text-white/90">Login</h2>
-        <form id="login-form" class="mt-6 space-y-4">
-          <div>
-            <label for="email" class="mb-1 inline-block text-sm text-white/80">Email</label>
-            <input type="email" id="email" name="email" required class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" placeholder="seu@email.com" />
-          </div>
-          <div>
-            <label for="password" class="mb-1 inline-block text-sm text-white/80">Senha</label>
-            <input type="password" id="password" name="password" required class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" />
-          </div>
-          <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-fuchsia-900/30 hover:opacity-95">Entrar</button>
-          <p id="login-error" class="text-center text-sm text-red-400"></p>
-        </form>
-      </div>
-      <p class="mt-4 text-center text-sm text-white/60">Não tem uma conta? <a href="/signup.html" class="text-fuchsia-300 hover:underline">Cadastre-se</a></p>
+    <div class="rounded-2xl border border-white/10 bg-white/5 p-8">
+      <h2 class="text-center text-2xl font-bold text-white/90">Login</h2>
+      <p class="mt-2 text-center text-sm text-white/60">
+        A autenticacao de clientes agora usa Firebase Authentication.
+      </p>
+
+      <form id="login-form" class="mt-6 space-y-4" novalidate>
+        <div>
+          <label for="email" class="mb-1 inline-block text-sm text-white/80">Email</label>
+          <input type="email" id="email" name="email" required class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" placeholder="seu@email.com" />
+        </div>
+        <div>
+          <label for="password" class="mb-1 inline-block text-sm text-white/80">Senha</label>
+          <input type="password" id="password" name="password" required class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 outline-none placeholder:text-white/40 focus:ring-2 focus:ring-purple-600/50" />
+        </div>
+
+        <div class="flex items-center justify-end">
+          <a href="/forgot-password" class="text-sm text-fuchsia-300 hover:underline">Esqueceu a senha?</a>
+        </div>
+
+        <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold shadow-lg shadow-fuchsia-900/30 hover:opacity-95">
+          Entrar
+        </button>
+        <p id="login-feedback" class="text-center text-sm"></p>
+      </form>
+    </div>
+
+    <p class="mt-4 text-center text-sm text-white/60">
+      Nao tem uma conta?
+      <a href="/signup" class="text-fuchsia-300 hover:underline">Cadastre-se</a>
+    </p>
   </main>
 
+  <script src="/js/email-validator.js"></script>
   <script>
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = e.target.email.value;
-      const password = e.target.password.value;
-      const loginError = document.getElementById('login-error');
-      loginError.textContent = '';
+    const loginForm = document.getElementById("login-form");
+    const feedbackEl = document.getElementById("login-feedback");
+
+    function setFeedback(message, type) {
+      feedbackEl.textContent = message;
+      feedbackEl.className = `text-center text-sm ${type === "error" ? "text-red-400" : "text-emerald-300"}`;
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const email = event.target.email.value.trim().toLowerCase();
+      const password = event.target.password.value;
+
+      setFeedback("", "success");
+
+      if (!email || !password) {
+        setFeedback("Preencha email e senha para continuar.", "error");
+        return;
+      }
+
+      if (!window.isValidEmail(email)) {
+        setFeedback("Informe um e-mail valido.", "error");
+        return;
+      }
 
       try {
-        const res = await fetch('/api/client/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+        const response = await fetch("/api/client/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Falha no login');
 
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-          window.location.href = '/home.html'; // Redirect to home page
-        } else {
-            throw new Error('Token não recebido.');
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Falha no login.");
         }
-      } catch (err) {
-        console.error(err);
-        loginError.textContent = err.message;
+
+        localStorage.setItem("token", data.token);
+        window.location.href = "/home.html";
+      } catch (error) {
+        console.error(error);
+        setFeedback(error.message, "error");
       }
     });
   </script>

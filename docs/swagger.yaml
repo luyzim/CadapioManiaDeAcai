@@ -116,6 +116,118 @@ paths:
         '201':
           description: Pedido criado com sucesso.
 
+  /client/signup:
+    post:
+      summary: Cadastra um cliente com Firebase Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, phone, password, confirmPassword]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+      responses:
+        '201':
+          description: Cadastro realizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientAuthResponse'
+
+  /client/login:
+    post:
+      summary: Faz login do cliente com email e senha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login realizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientAuthResponse'
+
+  /client/firebase-session:
+    post:
+      summary: Troca o Firebase ID token por um JWT da API
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken:
+                  type: string
+                name:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: Sessao da API criada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientAuthResponse'
+
+  /client/forgot-password:
+    post:
+      summary: Solicita email de recuperacao de senha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Email de recuperacao solicitado com sucesso.
+
+  /client/my-orders:
+    get:
+      summary: Retorna os pedidos do cliente autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de pedidos do cliente.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientOrder'
+
   /admin/login:
     post:
       summary: Autentica um administrador
@@ -265,6 +377,74 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    ClientProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        firebase_uid:
+          type: string
+          nullable: true
+    ClientAuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+        migratedToFirebase:
+          type: boolean
+        firebaseSignInProvider:
+          type: string
+          nullable: true
+        client:
+          $ref: '#/components/schemas/ClientProfile'
+    ClientOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+        customer_name:
+          type: string
+          nullable: true
+        customer_table:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [Recebido, Em_preparo, Pronto, Entregue]
+        total_cents:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              item_id:
+                type: integer
+              name:
+                type: string
+              qty:
+                type: integer
+              unit_price_cents:
+                type: integer
+              options:
+                type: array
+                items:
+                  type: object
+              image_url:
+                type: string
+                nullable: true
     Item:
       type: object
       properties:
