@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -22,6 +23,8 @@ class ApiClient {
     http.Client? client,
   }) : _client = client ?? http.Client();
 
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
   final http.Client _client;
 
   Future<dynamic> get(
@@ -29,9 +32,11 @@ class ApiClient {
     String? bearerToken,
     Map<String, String>? headers,
   }) {
+    final Uri uri = _buildUri(path);
     return _send(
+      uri,
       () => _client.get(
-        Uri.parse('${ApiConfig.baseUrl}$path'),
+        uri,
         headers: _buildHeaders(
           bearerToken: bearerToken,
           headers: headers,
@@ -46,9 +51,11 @@ class ApiClient {
     String? bearerToken,
     Map<String, String>? headers,
   }) {
+    final Uri uri = _buildUri(path);
     return _send(
+      uri,
       () => _client.post(
-        Uri.parse('${ApiConfig.baseUrl}$path'),
+        uri,
         headers: _buildHeaders(
           bearerToken: bearerToken,
           headers: headers,
@@ -64,9 +71,11 @@ class ApiClient {
     String? bearerToken,
     Map<String, String>? headers,
   }) {
+    final Uri uri = _buildUri(path);
     return _send(
+      uri,
       () => _client.patch(
-        Uri.parse('${ApiConfig.baseUrl}$path'),
+        uri,
         headers: _buildHeaders(
           bearerToken: bearerToken,
           headers: headers,
@@ -82,9 +91,11 @@ class ApiClient {
     String? bearerToken,
     Map<String, String>? headers,
   }) {
+    final Uri uri = _buildUri(path);
     return _send(
+      uri,
       () => _client.put(
-        Uri.parse('${ApiConfig.baseUrl}$path'),
+        uri,
         headers: _buildHeaders(
           bearerToken: bearerToken,
           headers: headers,
@@ -99,9 +110,11 @@ class ApiClient {
     String? bearerToken,
     Map<String, String>? headers,
   }) {
+    final Uri uri = _buildUri(path);
     return _send(
+      uri,
       () => _client.delete(
-        Uri.parse('${ApiConfig.baseUrl}$path'),
+        uri,
         headers: _buildHeaders(
           bearerToken: bearerToken,
           headers: headers,
@@ -126,8 +139,32 @@ class ApiClient {
     return allHeaders;
   }
 
-  Future<dynamic> _send(Future<http.Response> Function() request) async {
-    final http.Response response = await request();
+  Uri _buildUri(String path) {
+    return Uri.parse('${ApiConfig.baseUrl}$path');
+  }
+
+  Future<dynamic> _send(
+    Uri uri,
+    Future<http.Response> Function() request,
+  ) async {
+    late final http.Response response;
+
+    try {
+      response = await request().timeout(_requestTimeout);
+    } on TimeoutException {
+      throw ApiFailure(
+        message:
+            'Tempo esgotado ao conectar ao servidor em ${uri.origin}. '
+            'Verifique se o backend esta ativo.',
+      );
+    } on Exception {
+      throw ApiFailure(
+        message:
+            'Nao foi possivel conectar ao servidor em ${uri.origin}. '
+            'Verifique se o backend esta ativo e se o IP configurado esta correto.',
+      );
+    }
+
     final dynamic data = _decodeBody(response.body);
 
     if (response.statusCode >= 400) {
@@ -152,6 +189,12 @@ class ApiClient {
       return null;
     }
 
-    return jsonDecode(body);
+    try {
+      return jsonDecode(body);
+    } on FormatException {
+      throw const ApiFailure(
+        message: 'O servidor respondeu em um formato inesperado.',
+      );
+    }
   }
 }

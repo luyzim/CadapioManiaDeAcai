@@ -1,132 +1,135 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
+
 const prisma = new PrismaClient();
 
+const categories = [
+  { key: "acai", name: "A\u00E7a\u00ED" },
+  { key: "bebidas", name: "Bebidas" },
+];
+
+const menuItems = [
+  {
+    categoryKey: "acai",
+    name: "A\u00E7a\u00ED com Morango e Ninho",
+    short_desc: "A\u00E7a\u00ED cremoso com morango e leite Ninho.",
+    ingredients: "A\u00E7a\u00ED, morango e leite Ninho.",
+    price_cents: 1800,
+    image_url: "/img/AcaiMorangoComNinho-removebg-preview.png",
+  },
+  {
+    categoryKey: "acai",
+    name: "A\u00E7a\u00ED com Uva e Nutella",
+    short_desc: "A\u00E7a\u00ED cremoso com uva e Nutella.",
+    ingredients: "A\u00E7a\u00ED, uva e Nutella.",
+    price_cents: 1900,
+    image_url: "/img/AcaiUvaComNutella-removebg-preview.png",
+  },
+  {
+    categoryKey: "bebidas",
+    name: "Batida de A\u00E7a\u00ED",
+    short_desc: "Batida gelada de a\u00E7a\u00ED pronta para beber.",
+    ingredients: "A\u00E7a\u00ED batido e gelo.",
+    price_cents: 1400,
+    image_url: "/img/BatidaA\u00E7ai-removebg-preview.png",
+  },
+  {
+    categoryKey: "bebidas",
+    name: "Coca-Cola Lata",
+    short_desc: "Refrigerante Coca-Cola em lata 350ml.",
+    ingredients: "\u00C1gua gaseificada, a\u00E7\u00FAcar e extrato de noz de cola.",
+    price_cents: 600,
+    image_url: "/img/CocaCola.png",
+  },
+  {
+    categoryKey: "bebidas",
+    name: "Guaran\u00E1 Antarctica Lata",
+    short_desc: "Refrigerante Guaran\u00E1 Antarctica em lata 350ml.",
+    ingredients: "\u00C1gua gaseificada, a\u00E7\u00FAcar e extrato de guaran\u00E1.",
+    price_cents: 550,
+    image_url: "/img/GuaranaLata.png",
+  },
+  {
+    categoryKey: "bebidas",
+    name: "Suco de Laranja",
+    short_desc: "Suco de laranja gelado e refrescante.",
+    ingredients: "Suco de laranja.",
+    price_cents: 800,
+    image_url: "/img/sucoDeLaranja-removebg-preview.png",
+  },
+];
+
+const legacyItemsWithoutMatchingImage = [
+  "A\u00E7a\u00ED Tradicional",
+  "Soda Lim\u00E3o Lata",
+];
+
 async function main() {
-  console.log('Start seeding...');
+  console.log("Start seeding...");
 
-  // Create Categories
-  const acaiCategory = await prisma.categories.upsert({
-    where: { name: 'Açaí' },
-    update: {},
-    create: { name: 'Açaí' },
-  });
-  console.log(`Created category: ${acaiCategory.name}`);
+  const categoryMap = new Map();
 
-  const bebidasCategory = await prisma.categories.upsert({
-    where: { name: 'Bebidas' },
-    update: {},
-    create: { name: 'Bebidas' },
-  });
-  console.log(`Created category: ${bebidasCategory.name}`);
+  for (const category of categories) {
+    const upsertedCategory = await prisma.categories.upsert({
+      where: { name: category.name },
+      update: { name: category.name },
+      create: { name: category.name },
+    });
 
-  // Create Açaí Items with Options
-  const acaiItem = await prisma.items.upsert({
-    where: { name: 'Açaí Tradicional' },
-    update: {},
-    create: {
-      category_id: acaiCategory.id,
-      name: 'Açaí Tradicional',
-      short_desc: 'Açaí puro e cremoso',
-      ingredients: 'Açaí, xarope de guaraná',
-      price_cents: 1000, // Base price for small size
-      image_url: '/img/acai_tradicional.jpg',
-      active: true,
-      item_options: {
-        create: [
-          { name: 'Tamanho', value: 'Pequeno', add_price_cents: 0 }, // 10.00
-          { name: 'Tamanho', value: 'Médio', add_price_cents: 500 }, // 15.00
-          { name: 'Tamanho', value: 'Grande', add_price_cents: 1000 }, // 20.00
-        ],
+    categoryMap.set(category.key, upsertedCategory);
+    console.log(`Category ready: ${upsertedCategory.name}`);
+  }
+
+  for (const item of menuItems) {
+    const category = categoryMap.get(item.categoryKey);
+
+    if (!category) {
+      throw new Error(`Category not found for key: ${item.categoryKey}`);
+    }
+
+    const upsertedItem = await prisma.items.upsert({
+      where: { name: item.name },
+      update: {
+        category_id: category.id,
+        short_desc: item.short_desc,
+        ingredients: item.ingredients,
+        price_cents: item.price_cents,
+        image_url: item.image_url,
+        active: true,
+      },
+      create: {
+        category_id: category.id,
+        name: item.name,
+        short_desc: item.short_desc,
+        ingredients: item.ingredients,
+        price_cents: item.price_cents,
+        image_url: item.image_url,
+        active: true,
+      },
+    });
+
+    console.log(`Item ready: ${upsertedItem.name}`);
+  }
+
+  const deactivatedItems = await prisma.items.updateMany({
+    where: {
+      name: {
+        in: legacyItemsWithoutMatchingImage,
       },
     },
-    include: {
-      item_options: true,
+    data: {
+      active: false,
     },
   });
-  console.log(`Created item: ${acaiItem.name} with options`);
 
-  const acaiMorango = await prisma.items.upsert({
-    where: { name: 'Açaí com Morango e Ninho' },
-    update: {},
-    create: {
-      category_id: acaiCategory.id,
-      name: 'Açaí com Morango e Ninho',
-      short_desc: 'Açaí com morangos frescos e leite em pó',
-      ingredients: 'Açaí, morango, leite em pó',
-      price_cents: 1500,
-      image_url: '/img/AcaiMorangoComNinho.jpg',
-      active: true,
-    },
-  });
-  console.log(`Created item: ${acaiMorango.name}`);
-
-  const acaiUva = await prisma.items.upsert({
-    where: { name: 'Açaí com Uva e Nutella' },
-    update: {},
-    create: {
-      category_id: acaiCategory.id,
-      name: 'Açaí com Uva e Nutella',
-      short_desc: 'Açaí com uvas e um delicioso creme de avelã',
-      ingredients: 'Açaí, uva, Nutella',
-      price_cents: 1600,
-      image_url: '/img/AcaiUvaComNutella.jpeg',
-      active: true,
-    },
-  });
-  console.log(`Created item: ${acaiUva.name}`);
-
-  // Create Soda Items
-  const cocaCola = await prisma.items.upsert({
-    where: { name: 'Coca-Cola Lata' },
-    update: { image_url: '/img/CocaCola.png' },
-    create: {
-      category_id: bebidasCategory.id,
-      name: 'Coca-Cola Lata',
-      short_desc: 'Refrigerante Coca-Cola em lata 350ml',
-      ingredients: 'Água gaseificada, açúcar, extrato de noz de cola',
-      price_cents: 600,
-      image_url: '/img/CocaCola.png',
-      active: true,
-    },
-  });
-  console.log(`Created item: ${cocaCola.name}`);
-
-  const guarana = await prisma.items.upsert({
-    where: { name: 'Guaraná Antarctica Lata' },
-    update: { image_url: '/img/Guarana.png' },
-    create: {
-      category_id: bebidasCategory.id,
-      name: 'Guaraná Antarctica Lata',
-      short_desc: 'Refrigerante Guaraná Antarctica em lata 350ml',
-      ingredients: 'Água gaseificada, açúcar, extrato de guaraná',
-      price_cents: 550,
-      image_url: '/img/Guarana.png',
-      active: true,
-    },
-  });
-  console.log(`Created item: ${guarana.name}`);
-
-  const sodaLimao = await prisma.items.upsert({
-    where: { name: 'Soda Limão Lata' },
-    update: {},
-    create: {
-      category_id: bebidasCategory.id,
-      name: 'Soda Limão Lata',
-      short_desc: 'Refrigerante Soda Limão em lata 350ml',
-      ingredients: 'Água gaseificada, açúcar, suco de limão',
-      price_cents: 500,
-      image_url: '/img/soda_limao.jpg', // Assuming a generic image or placeholder
-      active: true,
-    },
-  });
-  console.log(`Created item: ${sodaLimao.name}`);
-
-  console.log('Seeding finished.');
+  console.log(
+    `Legacy items disabled because they do not have a matching image: ${deactivatedItems.count}`
+  );
+  console.log("Seeding finished.");
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
+  .catch((error) => {
+    console.error(error);
     process.exit(1);
   })
   .finally(async () => {
